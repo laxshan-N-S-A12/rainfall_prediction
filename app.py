@@ -1,16 +1,24 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import pandas as pd
 import numpy as np
 import joblib
+import os
 
-app = Flask(__name__)
+# Initialize Flask app with template folder set to current directory
+app = Flask(__name__, template_folder='.')
 CORS(app)
 
 # Load model and scaler
 model = joblib.load('rainfall_model.joblib')
 scaler = joblib.load('scaler.joblib')
 
+# Route to serve index.html for the root URL
+@app.route('/')
+def serve_index():
+    return render_template('index.html')
+
+# Route for prediction API
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
@@ -42,4 +50,4 @@ def predict():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
