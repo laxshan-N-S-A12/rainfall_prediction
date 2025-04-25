@@ -58,7 +58,7 @@
     <p id="result"></p>
 
     <script>
-        document.getElementByblueberry.addEventListener('submit', async (e) => {
+        document.getElementById('predict-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
@@ -66,6 +66,11 @@
             // Convert form data to numbers
             for (const key in data) {
                 data[key] = parseFloat(data[key]);
+                if (isNaN(data[key])) {
+                    document.getElementById('result').className = 'error';
+                    document.getElementById('result').innerText = `Error: Invalid input for ${key}`;
+                    return;
+                }
             }
 
             try {
@@ -85,8 +90,8 @@
                     resultElement.innerText = `Error: ${result.error}`;
                 }
             } catch (error) {
-                resultElement.className = 'error';
-                resultElement.innerText = `Error: ${error.message}`;
+                document.getElementById('result').className = 'error';
+                document.getElementById('result').innerText = `Error: ${error.message}`;
             }
         });
     </script>
