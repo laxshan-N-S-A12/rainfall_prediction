@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rainfall Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input {
+            padding: 8px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rainfall Prediction</h1>
+    <form id="predict-form">
+        <input type="number" name="pressure" placeholder="Pressure (hPa, e.g., 1013.2)" required step="0.1" min="900" max="1100">
+        <input type="number" name="maxtemp" placeholder="Max Temperature (°C, e.g., 25.0)" required step="0.1" min="5" max="40">
+        <input type="number" name="temparature" placeholder="Temperature (°C, e.g., 20.0)" required step="0.1" min="5" max="40">
+        <input type="number" name="mintemp" placeholder="Min Temperature (°C, e.g., 15.0)" required step="0.1" min="0" max="35">
+        <input type="number" name="dewpoint" placeholder="Dewpoint (°C, e.g., 18.0)" required step="0.1" min="0" max="30">
+        <input type="number" name="humidity" placeholder="Humidity (%, e.g., 50)" required step="1" min="10" max="100">
+        <input type="number" name="cloud" placeholder="Cloud Cover (%, e.g., 20)" required step="1" min="0" max="100">
+        <input type="number" name="sunshine" placeholder="Sunshine Hours (e.g., 7.5)" required step="0.1" min="0" max="15">
+        <input type="number" name="winddirection" placeholder="Wind Direction (°, e.g., 180)" required step="1" min="0" max="360">
+        <input type="number" name="windspeed" placeholder="Wind Speed (km/h, e.g., 10.5)" required step="0.1" min="0" max="60">
+        <button type="submit">Predict Rainfall</button>
+    </form>
+    <p id="result"></p>
+
+    <script>
+        document.getElementById('predict-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            for (const key in data) {
+                data[key] = parseFloat(data[key]);
+                if (isNaN(data[key])) {
+                    document.getElementById('result').className = 'error';
+                    document.getElementById('result').innerText = `Error: Invalid input for ${key}`;
+                    return;
+                }
+            }
+
+            console.log('Sending data:', data);
+            try {
+                // Use relative path for Render
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                const resultElement = document.getElementById('result');
+                if (response.ok) {
+                    resultElement.className = '';
+                    resultElement.innerText = 
+                        `Prediction: ${result.prediction}, Probability: ${(result.probability * 100).toFixed(2)}%`;
+                } else {
+                    console.error('Backend error:', result);
+                    resultElement.className = 'error';
+                    resultElement.innerText = `Error: ${result.error || 'Unknown backend error'}`;
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                document.getElementById('result').className = 'error';
+                document.getElementById('result').innerText = 
+                    `Error: Failed to connect to server. Please try again.`;
+            }
+        });
+    </script>
+</body>
+</html>
